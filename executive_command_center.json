@@ -1,0 +1,166 @@
+{
+  "version": "0.6.10",
+  "kind": "app",
+  "app": {
+    "mode": "workflow",
+    "name": "🎯 AI CEO Executive Command Center",
+    "description": "Master orchestrator for the AI ADHD CEO - processes all inputs, delegates to specialists, and manages your three major initiatives while externalizing executive functions.",
+    "icon": "🎯",
+    "icon_background": "#1C64F2"
+  },
+  "workflow": {
+    "graph": {
+      "nodes": [
+        {
+          "id": "start",
+          "type": "start",
+          "data": {
+            "title": "Input Handler",
+            "variables": [
+              {
+                "variable": "input_type",
+                "type": "select",
+                "label": "Input Type",
+                "options": ["voice_transcription", "email", "document", "meeting_notes", "task_request"],
+                "required": true
+              },
+              {
+                "variable": "content",
+                "type": "paragraph",
+                "label": "Content/Transcription",
+                "required": true
+              },
+              {
+                "variable": "priority",
+                "type": "select", 
+                "label": "Priority Level",
+                "options": ["urgent", "high", "medium", "low"],
+                "default": "medium"
+              }
+            ]
+          },
+          "position": {"x": 100, "y": 100}
+        },
+        {
+          "id": "context_analyzer", 
+          "type": "llm",
+          "data": {
+            "title": "Context Analysis Engine",
+            "model": {
+              "provider": "ollama",
+              "name": "llama3.2:latest",
+              "completion_params": {
+                "temperature": 0.1,
+                "max_tokens": 1000
+              }
+            },
+            "prompt_template": "You are the AI CEO's context analysis engine. Analyze this input and determine:\n\n1. CATEGORY: Which of these applies?\n   - Healthcare startup related\n   - Nonprofit alliance related\n   - LLM development related\n   - Personal/executive tasks\n   - Relationship management\n\n2. ACTION ITEMS: Extract specific actionable tasks\n\n3. PEOPLE: Identify people mentioned and relationship context\n\n4. URGENCY: Rate 1-10 and explain\n\n5. DELEGATION: Can this be delegated? To whom?\n\nInput Type: {{start.input_type}}\nContent: {{start.content}}\nPriority: {{start.priority}}\n\nProvide structured analysis in JSON format."
+          },
+          "position": {"x": 300, "y": 100}
+        },
+        {
+          "id": "task_router",
+          "type": "if-else", 
+          "data": {
+            "title": "Intelligent Task Router",
+            "conditions": [
+              {
+                "variable_selector": ["context_analyzer", "text"],
+                "comparison_operator": "contains",
+                "value": "healthcare"
+              }
+            ]
+          },
+          "position": {"x": 500, "y": 100}
+        },
+        {
+          "id": "monica_crm_updater",
+          "type": "http-request",
+          "data": {
+            "title": "Update Monica CRM",
+            "method": "POST",
+            "url": "http://localhost:8888/api/contacts/update",
+            "headers": {
+              "Authorization": "Bearer {{vaultwarden.monica_token}}",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "personas": "{{context_analyzer.people_data}}",
+              "conversation_context": "{{start.content}}",
+              "insights": "{{context_analyzer.relationship_insights}}"
+            }
+          },
+          "position": {"x": 700, "y": 200}
+        },
+        {
+          "id": "notion_task_creator",
+          "type": "http-request", 
+          "data": {
+            "title": "Create Notion Tasks",
+            "method": "POST",
+            "url": "https://api.notion.com/v1/pages",
+            "headers": {
+              "Authorization": "Bearer {{vaultwarden.notion_token}}",
+              "Content-Type": "application/json",
+              "Notion-Version": "2022-06-28"
+            },
+            "body": {
+              "parent": {"database_id": "{{vaultwarden.notion_tasks_db}}"},
+              "properties": {
+                "Name": {"title": [{"text": {"content": "{{context_analyzer.task_title}}"}}]},
+                "Priority": {"select": {"name": "{{start.priority}}"}},
+                "Category": {"select": {"name": "{{context_analyzer.category}}"}},
+                "Can Delegate": {"checkbox": "{{context_analyzer.delegatable}}"}
+              }
+            }
+          },
+          "position": {"x": 700, "y": 300}
+        },
+        {
+          "id": "usemotion_scheduler",
+          "type": "http-request",
+          "data": {
+            "title": "Smart Calendar Scheduling",
+            "method": "POST", 
+            "url": "https://api.usemotion.com/v1/tasks",
+            "headers": {
+              "X-API-Key": "{{vaultwarden.usemotion_key}}",
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "name": "{{context_analyzer.task_title}}",
+              "description": "{{context_analyzer.task_details}}",
+              "priority": "{{start.priority}}",
+              "dueDate": "{{context_analyzer.due_date}}",
+              "workspaceId": "{{vaultwarden.usemotion_workspace}}"
+            }
+          },
+          "position": {"x": 700, "y": 400}
+        },
+        {
+          "id": "executive_summary",
+          "type": "llm",
+          "data": {
+            "title": "Executive Summary Generator", 
+            "model": {
+              "provider": "ollama",
+              "name": "mistral:latest"
+            },
+            "prompt_template": "Generate an executive summary of actions taken:\n\n🎯 PROCESSED: {{start.input_type}} - {{start.priority}} priority\n\n📊 ANALYSIS RESULTS:\n{{context_analyzer.text}}\n\n✅ ACTIONS TAKEN:\n- Monica CRM: {{monica_crm_updater.status}}\n- Notion Tasks: {{notion_task_creator.status}} \n- Calendar: {{usemotion_scheduler.status}}\n\n🚀 NEXT STEPS:\n[Generate 3 specific next steps based on analysis]\n\n⚡ CEO FOCUS AREAS:\n[Highlight what requires personal CEO attention vs what's delegated]"
+          },
+          "position": {"x": 900, "y": 250}
+        }
+      ],
+      "edges": [
+        {"source": "start", "target": "context_analyzer"},
+        {"source": "context_analyzer", "target": "task_router"},
+        {"source": "task_router", "target": "monica_crm_updater"},
+        {"source": "task_router", "target": "notion_task_creator"},
+        {"source": "task_router", "target": "usemotion_scheduler"},
+        {"source": "monica_crm_updater", "target": "executive_summary"},
+        {"source": "notion_task_creator", "target": "executive_summary"},
+        {"source": "usemotion_scheduler", "target": "executive_summary"}
+      ]
+    }
+  }
+}

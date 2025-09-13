@@ -1,0 +1,118 @@
+{
+  "ai_ceo_exoskeleton_apps": {
+    "1_executive_command_center": {
+      "name": "🎯 AI CEO Executive Command Center",
+      "type": "workflow",
+      "description": "Master orchestrator that processes all inputs and delegates to specialized agents",
+      "features": [
+        "Voice transcription processing",
+        "Context extraction from conversations", 
+        "Multi-agent task delegation",
+        "Real-time decision making",
+        "Executive summary generation"
+      ],
+      "integrations": ["Monica CRM", "UseMotion", "Notion", "Vaultwarden"]
+    },
+    
+    "2_conversation_intelligence": {
+      "name": "🎤 Conversation Intelligence Engine", 
+      "type": "chatflow",
+      "description": "Processes daily transcribed conversations to extract insights and actions",
+      "features": [
+        "Real-time transcription processing",
+        "Speaker identification and persona enrichment",
+        "Action item extraction",
+        "Relationship intelligence",
+        "Meeting summary generation"
+      ],
+      "outputs_to": ["Monica CRM personas", "Notion tasks", "Calendar events"]
+    },
+
+    "3_healthcare_startup_advisor": {
+      "name": "🏥 AI-Assisted Latino Healthcare Advisor",
+      "type": "agent",
+      "description": "Specialized advisor for your Latino-focused healthcare startup",
+      "features": [
+        "Market research and analysis",
+        "Cultural intelligence integration", 
+        "Healthcare regulation guidance",
+        "Funding opportunity identification",
+        "Partnership recommendations"
+      ],
+      "knowledge_base": ["Healthcare regulations", "Latino health statistics", "Startup playbooks"]
+    },
+
+    "4_nonprofit_alliance_manager": {
+      "name": "🤝 Nonprofit Alliance Orchestrator",
+      "type": "workflow", 
+      "description": "Manages your culturally intelligent nonprofit alliance initiatives",
+      "features": [
+        "Grant opportunity tracking",
+        "Partnership management",
+        "Impact measurement",
+        "Fundraising campaign optimization",
+        "Community engagement strategies"
+      ],
+      "integrations": ["CRM for donor management", "Calendar for events"]
+    },
+
+    "5_llm_development_assistant": {
+      "name": "🧠 Culturally Intelligent LLM Developer",
+      "type": "agent",
+      "description": "Assists in building the first culturally intelligent LLM",
+      "features": [
+        "Training data curation",
+        "Cultural bias detection",
+        "Model performance analysis", 
+        "Research paper synthesis",
+        "Technical documentation"
+      ],
+      "knowledge_base": ["AI research papers", "Cultural datasets", "Technical documentation"]
+    },
+
+    "6_personal_productivity_exoskeleton": {
+      "name": "🚀 Personal Productivity Exoskeleton",
+      "type": "workflow",
+      "description": "Your external executive function system - time, tasks, energy management",
+      "features": [
+        "Intelligent calendar optimization",
+        "Energy-based task scheduling",
+        "Delegation decision engine",
+        "Focus session management", 
+        "Recovery and breaks optimization"
+      ],
+      "integrations": ["UseMotion API", "Notion", "Calendar", "Health tracking"]
+    },
+
+    "7_relationship_intelligence": {
+      "name": "💼 Relationship Intelligence Hub",
+      "type": "chatflow",
+      "description": "Enriches Monica CRM personas with conversation insights",
+      "features": [
+        "Conversation context extraction",
+        "Relationship strength analysis",
+        "Follow-up recommendations",
+        "Network effect analysis",
+        "Persona enrichment automation"
+      ],
+      "outputs_to": ["Monica CRM", "Follow-up tasks", "Meeting scheduling"]
+    }
+  },
+  
+  "integration_architecture": {
+    "data_flow": [
+      "Daily conversations → Transcription → Conversation Intelligence",
+      "Extracted insights → Relationship Intelligence → Monica CRM",
+      "Action items → Task delegation → Notion/Calendar",
+      "Strategic decisions → Executive Command Center → All systems"
+    ],
+    
+    "api_integrations": {
+      "monica_crm": "Persona enrichment and relationship management",
+      "usemotion": "Intelligent calendar and task scheduling", 
+      "notion": "Task delegation and project management",
+      "vaultwarden": "Secure credential management for autonomous operations",
+      "ollama": "Local AI models for privacy-sensitive processing"
+    }
+  }
+}

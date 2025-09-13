@@ -1,0 +1,121 @@
+{
+  "version": "0.6.10",
+  "kind": "app", 
+  "app": {
+    "mode": "chatflow",
+    "name": "🎤 Conversation Intelligence Engine",
+    "description": "Processes daily transcribed conversations to extract insights, enrich personas, and generate actions for your AI CEO ecosystem.",
+    "icon": "🎤",
+    "icon_background": "#DC2626"
+  },
+  "workflow": {
+    "graph": {
+      "nodes": [
+        {
+          "id": "start",
+          "type": "start",
+          "data": {
+            "title": "Conversation Input",
+            "variables": [
+              {
+                "variable": "transcription",
+                "type": "paragraph",
+                "label": "Daily Transcription",
+                "required": true
+              },
+              {
+                "variable": "meeting_context", 
+                "type": "text-input",
+                "label": "Meeting/Context Info",
+                "required": false
+              },
+              {
+                "variable": "participants",
+                "type": "text-input", 
+                "label": "Known Participants",
+                "required": false
+              }
+            ]
+          },
+          "position": {"x": 100, "y": 100}
+        },
+        {
+          "id": "speaker_identification",
+          "type": "llm",
+          "data": {
+            "title": "Speaker ID & Analysis",
+            "model": {
+              "provider": "ollama", 
+              "name": "llama3.2:latest"
+            },
+            "prompt_template": "Analyze this transcription for speaker identification and conversation intelligence:\n\nTranscription: {{start.transcription}}\nContext: {{start.meeting_context}}\nKnown Participants: {{start.participants}}\n\nPlease provide:\n\n1. SPEAKER IDENTIFICATION:\n   - How many speakers detected?\n   - Names/roles if identifiable\n   - Speaking patterns and communication style\n\n2. RELATIONSHIP DYNAMICS:\n   - Power dynamics\n   - Collaboration level\n   - Conflict or agreement areas\n   - Trust indicators\n\n3. PERSONA ENRICHMENT DATA:\n   - Interests mentioned\n   - Pain points expressed\n   - Goals/objectives stated\n   - Decision-making style\n   - Communication preferences\n\n4. BUSINESS INTELLIGENCE:\n   - Opportunities mentioned\n   - Challenges discussed\n   - Next steps implied\n   - Resource needs\n\nProvide detailed JSON response."
+          },
+          "position": {"x": 300, "y": 100}
+        },
+        {
+          "id": "action_extractor",
+          "type": "llm", 
+          "data": {
+            "title": "Action Item Extraction",
+            "model": {
+              "provider": "ollama",
+              "name": "mistral:latest"
+            },
+            "prompt_template": "Extract actionable items from this conversation analysis:\n\nSpeaker Analysis: {{speaker_identification.text}}\nOriginal Transcription: {{start.transcription}}\n\nExtract and categorize:\n\n1. IMMEDIATE ACTIONS (within 24-48 hours):\n   - Task description\n   - Owner (CEO or delegate)\n   - Urgency level\n   - Dependencies\n\n2. FOLLOW-UP ACTIONS (within 1-2 weeks):\n   - Task description \n   - Recommended owner\n   - Resources needed\n   - Success criteria\n\n3. STRATEGIC ACTIONS (longer term):\n   - Initiative description\n   - Strategic impact\n   - Timeline estimate\n   - Key stakeholders\n\n4. RELATIONSHIP ACTIONS:\n   - Follow-up communications needed\n   - Relationship building opportunities\n   - Introduction requests\n   - Thank you notes\n\n5. DELEGATION RECOMMENDATIONS:\n   - What can be delegated\n   - To whom (internal team/external)\n   - Priority level\n   - Required context\n\nFormat as actionable JSON for API integration."
+          },
+          "position": {"x": 500, "y": 100}
+        },
+        {
+          "id": "persona_enrichment",
+          "type": "llm",
+          "data": {
+            "title": "Monica CRM Persona Builder",
+            "model": {
+              "provider": "ollama",
+              "name": "llama3.2:latest"
+            },
+            "prompt_template": "Create comprehensive persona updates for Monica CRM based on conversation insights:\n\nConversation Analysis: {{speaker_identification.text}}\nAction Items: {{action_extractor.text}}\n\nFor each person mentioned, create/update their persona with:\n\n1. PERSONAL DETAILS:\n   - Communication style\n   - Preferred meeting times/formats\n   - Personality indicators (ADHD-friendly)\n   - Energy levels and patterns\n\n2. PROFESSIONAL CONTEXT:\n   - Role and responsibilities\n   - Current challenges\n   - Goals and KPIs\n   - Decision-making authority\n   - Budget influence\n\n3. RELATIONSHIP INTELLIGENCE:\n   - History with your organizations\n   - Trust level and rapport\n   - Mutual connections\n   - Collaboration potential\n   - Conflict areas to navigate\n\n4. BUSINESS OPPORTUNITIES:\n   - Healthcare startup relevance\n   - Nonprofit alliance potential\n   - LLM development interest\n   - Partnership possibilities\n   - Referral potential\n\n5. ADHD CEO OPTIMIZATION:\n   - How they prefer to receive information\n   - Best times to engage\n   - Communication frequency\n   - Follow-up preferences\n   - Energy matching strategies\n\nOutput as Monica CRM-compatible JSON structure."
+          },
+          "position": {"x": 700, "y": 100}
+        },
+        {
+          "id": "intelligent_scheduler",
+          "type": "llm",
+          "data": {
+            "title": "Smart Scheduling Intelligence",
+            "model": {
+              "provider": "ollama",
+              "name": "mistral:latest"
+            },
+            "prompt_template": "Analyze conversation for intelligent scheduling and calendar optimization:\n\nActions: {{action_extractor.text}}\nPersona Data: {{persona_enrichment.text}}\n\nCreate scheduling intelligence:\n\n1. CALENDAR EVENTS TO CREATE:\n   - Meeting titles and descriptions\n   - Optimal timing based on participant personas\n   - Preparation requirements\n   - Follow-up scheduling\n\n2. TASK TIMEBOXING:\n   - Time estimates for each action\n   - Energy level requirements\n   - Ideal time blocks\n   - Buffer time needed\n   - Dependencies and sequencing\n\n3. ADHD-OPTIMIZED SCHEDULING:\n   - Break patterns\n   - Focus session lengths\n   - Context switching minimization\n   - Energy management\n   - Hyperfocus opportunities\n\n4. USEMOTION API INTEGRATION:\n   - Task priority scoring\n   - Deadline calculations\n   - Workload balancing\n   - Meeting optimization\n   - Travel time considerations\n\nOutput as UseMotion API-ready JSON."
+          },
+          "position": {"x": 900, "y": 100}
+        },
+        {
+          "id": "integration_orchestrator",
+          "type": "code",
+          "data": {
+            "title": "API Integration Orchestrator",
+            "code": "import json\nimport requests\nfrom datetime import datetime, timedelta\n\ndef orchestrate_integrations(persona_data, actions, scheduling):\n    results = {}\n    \n    # Monica CRM Updates\n    try:\n        monica_payload = json.loads(persona_data)\n        monica_response = requests.post(\n            'http://localhost:8888/api/contacts/batch-update',\n            headers={'Authorization': 'Bearer ' + vaultwarden_token('monica')},\n            json=monica_payload\n        )\n        results['monica_crm'] = {'status': 'success', 'updated_contacts': len(monica_payload.get('contacts', []))}\n    except Exception as e:\n        results['monica_crm'] = {'status': 'error', 'message': str(e)}\n    \n    # Notion Task Creation\n    try:\n        actions_data = json.loads(actions)\n        for action_category in ['immediate_actions', 'followup_actions', 'strategic_actions']:\n            for action in actions_data.get(action_category, []):\n                notion_payload = {\n                    'parent': {'database_id': vaultwarden_token('notion_tasks_db')},\n                    'properties': {\n                        'Name': {'title': [{'text': {'content': action['task_description']}}]},\n                        'Category': {'select': {'name': action_category}},\n                        'Owner': {'select': {'name': action.get('owner', 'CEO')}},\n                        'Urgency': {'number': action.get('urgency_level', 5)}\n                    }\n                }\n                requests.post(\n                    'https://api.notion.com/v1/pages',\n                    headers={\n                        'Authorization': 'Bearer ' + vaultwarden_token('notion'),\n                        'Content-Type': 'application/json',\n                        'Notion-Version': '2022-06-28'\n                    },\n                    json=notion_payload\n                )\n        results['notion'] = {'status': 'success', 'tasks_created': sum(len(actions_data.get(cat, [])) for cat in ['immediate_actions', 'followup_actions', 'strategic_actions'])}\n    except Exception as e:\n        results['notion'] = {'status': 'error', 'message': str(e)}\n    \n    # UseMotion Calendar Integration\n    try:\n        scheduling_data = json.loads(scheduling)\n        for event in scheduling_data.get('calendar_events', []):\n            motion_payload = {\n                'name': event['title'],\n                'description': event['description'],\n                'dueDate': event['optimal_timing'],\n                'priority': event.get('priority', 'MEDIUM'),\n                'workspaceId': vaultwarden_token('usemotion_workspace')\n            }\n            requests.post(\n                'https://api.usemotion.com/v1/tasks',\n                headers={'X-API-Key': vaultwarden_token('usemotion')},\n                json=motion_payload\n            )\n        results['usemotion'] = {'status': 'success', 'events_scheduled': len(scheduling_data.get('calendar_events', []))}\n    except Exception as e:\n        results['usemotion'] = {'status': 'error', 'message': str(e)}\n    \n    return json.dumps(results, indent=2)\n\n# Execute orchestration\nresult = orchestrate_integrations(\n    persona_enrichment_text,\n    action_extractor_text, \n    intelligent_scheduler_text\n)\nprint(result)",
+            "outputs": {
+              "result": {
+                "type": "string"
+              }
+            }
+          },
+          "position": {"x": 1100, "y": 200}
+        }
+      ],
+      "edges": [
+        {"source": "start", "target": "speaker_identification"},
+        {"source": "speaker_identification", "target": "action_extractor"},
+        {"source": "speaker_identification", "target": "persona_enrichment"},
+        {"source": "action_extractor", "target": "intelligent_scheduler"},
+        {"source": "persona_enrichment", "target": "intelligent_scheduler"},
+        {"source": "persona_enrichment", "target": "integration_orchestrator"},
+        {"source": "action_extractor", "target": "integration_orchestrator"},
+        {"source": "intelligent_scheduler", "target": "integration_orchestrator"}
+      ]
+    }
+  }
+}
