@@ -1,0 +1,15 @@
+# Python dependencies for 222.place API
+flask==3.0.0
+flask-cors==4.0.0
+flask-jwt-extended==4.6.0
+psycopg2-binary==2.9.9
+redis==5.0.1
+sqlalchemy==2.0.23
+werkzeug==3.0.1
+python-dotenv==1.0.0
+bcrypt==4.1.2
+marshmallow==3.20.2
+python-dateutil==2.8.2
+requests==2.31.0
+gunicorn==21.2.0
+geopy==2.4.1
