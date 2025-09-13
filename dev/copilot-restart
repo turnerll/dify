@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# Copilot Restart Helper - Final step of cleanup workflow
+# Prepares environment for a fresh Copilot agent session
+
+set -e
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+cd "$SCRIPT_DIR/.."
+
+echo "🚀 Copilot Restart Helper"
+echo ""
+
+# Verify we're on main or appropriate branch
+current_branch=$(git branch --show-current)
+echo "📍 Current branch: $current_branch"
+
+if [[ "$current_branch" != "main" && "$current_branch" != "master" ]]; then
+    echo "⚠️  You're not on main/master branch."
+    echo "For best results, switch to main first using './dev/switch-to-main'"
+    echo ""
+    read -p "Continue anyway? (y/n): " continue_choice
+    if [[ ! "$continue_choice" =~ ^[Yy]$ ]]; then
+        echo "❌ Cancelled. Please switch to main branch first."
+        exit 1
+    fi
+fi
+
+echo ""
+echo "🧹 Pre-flight checks..."
+
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD --; then
+    echo "⚠️  Warning: You have uncommitted changes"
+    echo "Consider running './dev/workspace-status' first to clean up"
+    echo ""
+fi
+
+# Check git status
+echo "📊 Current git status:"
+git status --short
+
+echo ""
+echo "🔍 Recent commits:"
+git log --oneline -5
+
+echo ""
+echo "🌿 Available branches:"
+git branch | head -10
+
+echo ""
+echo "✅ Environment ready for Copilot!"
+echo ""
+echo "🎯 Now you can safely re-issue your Copilot agent prompt:"
+echo ""
+echo "Example prompt to use in VS Code Copilot chat:"
+echo "---"
+echo "Role: You are my autonomous copilot agent..."
+echo ""
+echo "Because you're on main, any commits will land in a normal branch/PR workflow"
+echo "instead of piling up in a temporary detached branch."
+echo ""
+echo "📝 Tips for your next Copilot session:"
+echo "• Start with a clear, specific goal"
+echo "• Mention this is a fresh start from main"
+echo "• Ask Copilot to create a proper feature branch"
+echo "• Set clear acceptance criteria"
+echo ""
+echo "🔄 Workflow summary completed:"
+echo "✅ Step 1: Workspace cleaned (workspace-status)"  
+echo "✅ Step 2: PRs managed (pr-management)"
+echo "✅ Step 3: Switched to main (switch-to-main)"
+echo "✅ Step 4: Ready for restart (this script)"
+echo ""
+echo "Happy coding! 🎉"

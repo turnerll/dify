@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Workspace Status Check - Step 1 of Copilot cleanup workflow
+# Checks git status and handles uncommitted changes as described in the problem statement
+
+set -e
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+cd "$SCRIPT_DIR/.."
+
+echo "🔍 Checking workspace status..."
+echo "Current branch: $(git branch --show-current)"
+echo "Current directory: $(pwd)"
+echo ""
+
+# Check git status
+echo "📊 Git Status:"
+git status
+
+# Check if there are uncommitted changes
+if ! git diff-index --quiet HEAD --; then
+    echo ""
+    echo "⚠️  Uncommitted changes detected!"
+    echo ""
+    echo "You have uncommitted changes. According to the Copilot cleanup workflow:"
+    echo "You should commit these changes before proceeding."
+    echo ""
+    echo "Would you like to commit them now? (y/n)"
+    read -r response
+    
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        echo "📝 Adding all changes..."
+        git add .
+        
+        echo "💬 Committing with default message..."
+        git commit -m "Save local work from Copilot draft"
+        
+        echo "✅ Changes committed successfully!"
+    else
+        echo "⚠️  Skipping commit. Please handle uncommitted changes manually before proceeding."
+        exit 1
+    fi
+else
+    echo ""
+    echo "✅ Working tree is clean - no uncommitted changes"
+fi
+
+echo ""
+echo "🌿 Available branches:"
+git branch -a
+
+echo ""
+echo "📋 Draft Pull Requests:"
+echo "Check your GitHub repository for any draft PRs created by Copilot:"
+echo "  https://github.com/$(git remote get-url origin | sed 's/.*github.com[:/]\([^/]*\/[^.]*\).*/\1/')/pulls"
+
+echo ""
+echo "✅ Workspace status check complete!"
+echo ""
+echo "Next steps:"
+echo "1. Review any draft PRs on GitHub"
+echo "2. Decide whether to merge or discard them"
+echo "3. Use './dev/switch-to-main' to switch to main branch"
+echo "4. Use './dev/copilot-restart' to restart your Copilot workflow"
