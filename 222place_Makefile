@@ -1,0 +1,154 @@
+# 222.place Makefile
+# Easy management for the social matching application
+
+.PHONY: help setup build start stop restart logs clean test smoke-test seed reset
+
+# Default target
+help:
+	@echo "222.place - Social Matching Application"
+	@echo ""
+	@echo "Available commands:"
+	@echo "  setup       - Initial setup and environment preparation"
+	@echo "  build       - Build all Docker images"
+	@echo "  start       - Start the complete application stack"
+	@echo "  stop        - Stop all services"
+	@echo "  restart     - Restart all services"
+	@echo "  logs        - Show logs from all services"
+	@echo "  seed        - Initialize database with seed data"
+	@echo "  test        - Run all tests"
+	@echo "  smoke-test  - Run smoke tests to verify functionality"
+	@echo "  clean       - Clean up containers and volumes"
+	@echo "  reset       - Complete reset (stop, clean, rebuild)"
+	@echo ""
+	@echo "Development commands:"
+	@echo "  dev-api     - Start API in development mode"
+	@echo "  dev-web     - Start web frontend in development mode"
+	@echo "  lint        - Run linting on all code"
+	@echo "  format      - Format all code"
+
+# Setup environment
+setup:
+	@echo "Setting up 222.place environment..."
+	@if [ ! -f docker/.env ]; then \
+		cp docker/.env.example docker/.env; \
+		echo "Created docker/.env from template"; \
+	else \
+		echo "docker/.env already exists"; \
+	fi
+	@echo "Generating secrets..."
+	@mkdir -p 222place/.secrets
+	@openssl rand -base64 32 > 222place/.secrets/secret_key.txt
+	@openssl rand -base64 32 > 222place/.secrets/jwt_secret.txt
+	@echo "Setup complete!"
+
+# Build Docker images
+build:
+	@echo "Building Docker images..."
+	cd docker && docker-compose build
+
+# Start the application stack
+start:
+	@echo "Starting 222.place application..."
+	cd docker && docker-compose up -d
+	@echo "Application started. Access at http://localhost"
+	@echo "Run 'make logs' to view logs"
+
+# Stop all services
+stop:
+	@echo "Stopping 222.place application..."
+	cd docker && docker-compose down
+
+# Restart all services
+restart: stop start
+
+# Show logs
+logs:
+	cd docker && docker-compose logs -f
+
+# Initialize database with seed data
+seed:
+	@echo "Initializing database with seed data..."
+	@if [ ! -f 222place/scripts/init_db.py ]; then \
+		echo "Error: Seed script not found"; \
+		exit 1; \
+	fi
+	cd docker && docker-compose exec api python /app/222place/scripts/init_db.py
+	@echo "Database seeded successfully!"
+
+# Run tests
+test:
+	@echo "Running tests..."
+	cd docker && docker-compose exec api python -m pytest /app/tests/
+	cd web && npm test
+
+# Run smoke tests
+smoke-test:
+	@echo "Running smoke tests..."
+	@sleep 5  # Wait for services to be ready
+	python3 222place/scripts/smoke_test.py
+	@echo "Smoke tests completed!"
+
+# Development mode for API
+dev-api:
+	@echo "Starting API in development mode..."
+	cd api && uv run --project . python app.py
+
+# Development mode for web
+dev-web:
+	@echo "Starting web frontend in development mode..."
+	cd web && npm run dev
+
+# Lint code
+lint:
+	@echo "Running linters..."
+	cd api && uv run --project . ruff check .
+	cd web && npm run lint
+
+# Format code
+format:
+	@echo "Formatting code..."
+	cd api && uv run --project . ruff format .
+	cd web && npm run format
+
+# Clean up
+clean:
+	@echo "Cleaning up containers and volumes..."
+	cd docker && docker-compose down -v --remove-orphans
+	docker system prune -f
+
+# Complete reset
+reset: stop clean
+	@echo "Performing complete reset..."
+	cd docker && docker-compose build --no-cache
+	@echo "Reset complete. Run 'make start' to restart."
+
+# Health check
+health:
+	@echo "Checking application health..."
+	@curl -f http://localhost/health || echo "Application not responding"
+	@echo ""
+
+# Quick start (one command to rule them all)
+quickstart: setup build start seed
+	@echo "🎉 222.place is ready!"
+	@echo "Access the application at: http://localhost"
+	@echo "Run 'make smoke-test' to verify everything is working"
+
+# Show application status
+status:
+	@echo "222.place Application Status:"
+	@echo "============================"
+	cd docker && docker-compose ps
+	@echo ""
+	@echo "Recent logs:"
+	cd docker && docker-compose logs --tail=5
+
+# Database console
+db-console:
+	@echo "Opening database console..."
+	cd docker && docker-compose exec db psql -U postgres dify
+
+# API console
+api-console:
+	@echo "Opening API Python console..."
+	cd docker && docker-compose exec api python
