@@ -12,14 +12,12 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 import structlog
 import uvicorn
-from prometheus_client import make_asgi_app
 
 # Add the app directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from config.settings import settings
-from config.database import init_db
-from routes import auth, onboarding, matching, events, social, health
+from routes import health, auth, onboarding, matching, events, social
 from utils.logging import setup_logging
 
 # Setup structured logging
@@ -36,9 +34,10 @@ app = FastAPI(
 )
 
 # CORS middleware
+cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
@@ -46,9 +45,10 @@ app.add_middleware(
 
 # Trusted hosts middleware for security
 if settings.TRUSTED_HOSTS:
+    trusted_hosts = [host.strip() for host in settings.TRUSTED_HOSTS.split(",")]
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=settings.TRUSTED_HOSTS
+        allowed_hosts=trusted_hosts
     )
 
 # Include routers
@@ -59,18 +59,10 @@ app.include_router(matching.router, prefix="/matches", tags=["matching"])
 app.include_router(events.router, prefix="/events", tags=["events"])
 app.include_router(social.router, prefix="/social", tags=["social"])
 
-# Prometheus metrics endpoint
-metrics_app = make_asgi_app()
-app.mount("/metrics", metrics_app)
-
 @app.on_event("startup")
 async def startup_event():
     """Initialize application on startup."""
     logger.info("Starting 222.place Matchmaking API", version="1.0.0")
-    
-    # Initialize database
-    await init_db()
-    logger.info("Database initialized")
 
 @app.on_event("shutdown")
 async def shutdown_event():

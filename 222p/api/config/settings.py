@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY: str = "your-32-byte-encryption-key-for-sensitive-data"
     
     # CORS and Security
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "https://localhost:3000"]
-    TRUSTED_HOSTS: Optional[List[str]] = ["localhost", "127.0.0.1"]
+    CORS_ORIGINS: str = "http://localhost:3000,https://localhost:3000"
+    TRUSTED_HOSTS: str = "localhost,127.0.0.1"
     
     # Database
     DATABASE_URL: str = "postgresql://postgres:postgres@db:5432/matchmaking_db"
@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     # File Upload
     UPLOAD_FOLDER: str = "/app/uploads"
     MAX_CONTENT_LENGTH: str = "10MB"
-    ALLOWED_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "gif", "pdf"]
+    ALLOWED_EXTENSIONS: str = "jpg,jpeg,png,gif,pdf"
     STORAGE_TYPE: str = "local"
     
     # Logging
@@ -121,7 +121,7 @@ class Settings(BaseSettings):
     # Localization
     DEFAULT_TIMEZONE: str = "UTC"
     DEFAULT_LANGUAGE: str = "en"
-    SUPPORTED_LANGUAGES: List[str] = ["en", "es"]
+    SUPPORTED_LANGUAGES: str = "en,es"
     
     # External Services
     GOOGLE_MAPS_API_KEY: Optional[str] = None
