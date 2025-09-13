@@ -1,0 +1,143 @@
+#!/bin/bash
+
+# PR Management Helper - Step 2 of Copilot cleanup workflow  
+# Helps manage Copilot draft PRs with merge/discard options
+
+set -e
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+cd "$SCRIPT_DIR/.."
+
+echo "🔄 Copilot PR Management Helper"
+echo ""
+
+# Get repository info
+repo_url=$(git remote get-url origin)
+if [[ "$repo_url" =~ github\.com[:/]([^/]+)/([^.]+) ]]; then
+    owner="${BASH_REMATCH[1]}"
+    repo="${BASH_REMATCH[2]}"
+    repo_name="$owner/$repo"
+else
+    echo "❌ Could not determine GitHub repository from remote URL: $repo_url"
+    exit 1
+fi
+
+echo "📍 Repository: $repo_name"
+echo "🌐 GitHub URL: https://github.com/$repo_name"
+echo ""
+
+echo "🔍 Checking for Copilot branches..."
+copilot_branches=$(git branch -a | grep -E "copilot/" | sed 's/^\*\?\s*//' || true)
+
+if [[ -z "$copilot_branches" ]]; then
+    echo "✅ No Copilot branches found"
+else
+    echo "🤖 Found Copilot branches:"
+    echo "$copilot_branches"
+fi
+
+echo ""
+echo "📋 Draft Pull Requests:"
+echo "Visit your repository to review draft PRs created by Copilot:"
+echo "  https://github.com/$repo_name/pulls?q=is%3Apr+is%3Aopen+draft%3Atrue"
+echo ""
+
+echo "For each draft PR, you can:"
+echo "1. 📖 Review the changes"
+echo "2. ✅ Merge it if you're satisfied"
+echo "3. ❌ Close/delete it if you want to discard"
+echo ""
+
+echo "🤔 What would you like to do?"
+echo "1) Open GitHub PR page in browser (if available)"
+echo "2) List local Copilot branches for cleanup"
+echo "3) Delete a specific Copilot branch"
+echo "4) Delete all local Copilot branches" 
+echo "5) Continue without action"
+echo ""
+
+read -p "Choose an option (1-5): " choice
+
+case $choice in
+    1)
+        pr_url="https://github.com/$repo_name/pulls?q=is%3Apr+is%3Aopen+draft%3Atrue"
+        echo "🌐 Opening GitHub PRs page..."
+        if command -v xdg-open >/dev/null 2>&1; then
+            xdg-open "$pr_url"
+        elif command -v open >/dev/null 2>&1; then
+            open "$pr_url"
+        else
+            echo "Please open this URL manually: $pr_url"
+        fi
+        ;;
+    2)
+        if [[ -n "$copilot_branches" ]]; then
+            echo "🤖 Local Copilot branches:"
+            echo "$copilot_branches"
+        else
+            echo "✅ No local Copilot branches found"
+        fi
+        ;;
+    3)
+        if [[ -n "$copilot_branches" ]]; then
+            echo "🤖 Available Copilot branches:"
+            echo "$copilot_branches"
+            echo ""
+            read -p "Enter branch name to delete: " branch_name
+            if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+                current_branch=$(git branch --show-current)
+                if [[ "$current_branch" == "$branch_name" ]]; then
+                    echo "⚠️  Cannot delete current branch. Switch to another branch first."
+                else
+                    git branch -D "$branch_name"
+                    echo "✅ Deleted branch: $branch_name"
+                fi
+            else
+                echo "❌ Branch not found: $branch_name"
+            fi
+        else
+            echo "✅ No Copilot branches to delete"
+        fi
+        ;;
+    4)
+        if [[ -n "$copilot_branches" ]]; then
+            current_branch=$(git branch --show-current)
+            deleted_count=0
+            
+            echo "$copilot_branches" | while read -r branch; do
+                # Remove remote prefix if present
+                branch=$(echo "$branch" | sed 's/^remotes\/origin\///')
+                
+                # Skip if it's the current branch
+                if [[ "$branch" == "$current_branch" ]]; then
+                    echo "⚠️  Skipping current branch: $branch"
+                    continue
+                fi
+                
+                # Delete local branch if it exists
+                if git show-ref --verify --quiet "refs/heads/$branch"; then
+                    git branch -D "$branch"
+                    echo "✅ Deleted: $branch"
+                    ((deleted_count++))
+                fi
+            done
+            
+            echo "🗑️  Deleted $deleted_count Copilot branches"
+        else
+            echo "✅ No Copilot branches to delete"
+        fi
+        ;;
+    5)
+        echo "✅ Continuing without action"
+        ;;
+    *)
+        echo "❌ Invalid option"
+        exit 1
+        ;;
+esac
+
+echo ""
+echo "📚 Next steps:"
+echo "1. After handling PRs on GitHub, use './dev/switch-to-main' to switch to main"
+echo "2. Pull any merged changes with 'git pull origin main'"
+echo "3. Start fresh with './dev/copilot-restart'"

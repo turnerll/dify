@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Switch to Main Branch - Step 3 of Copilot cleanup workflow
+# Safely switches to main branch and pulls latest changes
+
+set -e
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+cd "$SCRIPT_DIR/.."
+
+echo "🌿 Switching to main branch..."
+
+# Check if we're already on main
+current_branch=$(git branch --show-current)
+if [[ "$current_branch" == "main" ]]; then
+    echo "✅ Already on main branch"
+else
+    echo "📍 Currently on: $current_branch"
+    
+    # Check if main branch exists locally
+    if git show-ref --verify --quiet refs/heads/main; then
+        echo "🔄 Switching to existing main branch..."
+        git checkout main
+    else
+        echo "🆕 Main branch doesn't exist locally. Creating it..."
+        
+        # Try to fetch main from origin
+        if git ls-remote --heads origin main | grep -q main; then
+            echo "📥 Fetching main from origin..."
+            git fetch origin main:main
+            git checkout main
+        else
+            # If no main on origin, check if there's a HEAD or default branch
+            echo "🔍 No main branch on origin. Checking default branch..."
+            default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "")
+            
+            if [[ -n "$default_branch" && "$default_branch" != "main" ]]; then
+                echo "📍 Default branch is '$default_branch'. Creating main from it..."
+                git fetch origin "$default_branch:main"
+                git checkout main
+            else
+                # Fall back to creating main from HEAD
+                echo "🏗️  Creating main branch from current HEAD..."
+                git checkout -b main
+            fi
+        fi
+    fi
+fi
+
+echo ""
+echo "📥 Pulling latest changes from origin..."
+if git ls-remote --heads origin main | grep -q main; then
+    git pull origin main
+    echo "✅ Successfully pulled latest changes"
+else
+    echo "⚠️  No main branch on origin to pull from"
+fi
+
+echo ""
+echo "🎯 Current status:"
+echo "Branch: $(git branch --show-current)"
+echo "Latest commit: $(git log -1 --oneline)"
+
+echo ""
+echo "✅ Successfully switched to main branch!"
+echo ""
+echo "You're now ready to restart your Copilot workflow on a clean main branch."
+echo "Next: Use './dev/copilot-restart' to begin a new Copilot session."

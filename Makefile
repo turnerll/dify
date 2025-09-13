@@ -46,6 +46,23 @@ dev-clean:
 	@rm -rf api/storage
 	@echo "✅ Cleanup complete"
 
+# Copilot workflow management
+copilot-cleanup:
+	@echo "🤖 Running Copilot cleanup workflow..."
+	@./dev/copilot-cleanup
+
+workspace-status:
+	@echo "🔍 Checking workspace status..."
+	@./dev/workspace-status
+
+switch-to-main:
+	@echo "🌿 Switching to main branch..."
+	@./dev/switch-to-main
+
+pr-management:
+	@echo "🔄 Managing Copilot PRs..."
+	@./dev/pr-management
+
 # Build Docker images
 build-web:
 	@echo "Building web Docker image: $(WEB_IMAGE):$(VERSION)..."
@@ -90,6 +107,12 @@ help:
 	@echo "  make prepare-api    - Set up API environment"
 	@echo "  make dev-clean      - Stop Docker middleware containers"
 	@echo ""
+	@echo "Copilot Workflow Targets:"
+	@echo "  make copilot-cleanup - Run complete Copilot cleanup workflow"
+	@echo "  make workspace-status - Check workspace status and uncommitted changes"
+	@echo "  make switch-to-main  - Switch to main branch safely"
+	@echo "  make pr-management   - Manage Copilot draft PRs"
+	@echo ""
 	@echo "Docker Build Targets:"
 	@echo "  make build-web      - Build web Docker image"
 	@echo "  make build-api      - Build API Docker image"
@@ -98,4 +121,4 @@ help:
 	@echo "  make build-push-all - Build and push all Docker images"
 
 # Phony targets
-.PHONY: build-web build-api push-web push-api build-all push-all build-push-all dev-setup prepare-docker prepare-web prepare-api dev-clean help
+.PHONY: build-web build-api push-web push-api build-all push-all build-push-all dev-setup prepare-docker prepare-web prepare-api dev-clean help copilot-cleanup workspace-status switch-to-main pr-management

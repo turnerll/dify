@@ -1,0 +1,160 @@
+#!/bin/bash
+
+# Copilot Cleanup Workflow - Complete 3-step process
+# Implements the workflow described in the problem statement
+
+set -e
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+cd "$SCRIPT_DIR/.."
+
+echo "🤖 Copilot Cleanup Workflow"
+echo "================================"
+echo ""
+echo "This script implements the 3-step workflow for cleaning up after Copilot agent work:"
+echo ""
+echo "📋 Step 1: Clean up your workspace"
+echo "📋 Step 2: Merge the Copilot PR (if you want the changes)" 
+echo "📋 Step 3: Re-run your Copilot agent prompt"
+echo ""
+echo "Current status:"
+echo "📍 Branch: $(git branch --show-current)"
+echo "📁 Directory: $(pwd)"
+echo ""
+
+# Check if we're on a Copilot branch
+current_branch=$(git branch --show-current)
+if [[ "$current_branch" =~ ^copilot/ ]]; then
+    echo "🔍 Detected Copilot branch: $current_branch"
+    echo "✅ This workflow is designed for your situation!"
+else
+    echo "ℹ️  Current branch doesn't appear to be a Copilot branch"
+    echo "This workflow is still useful for general cleanup"
+fi
+
+echo ""
+echo "Would you like to:"
+echo "1) 🚀 Run the complete workflow (recommended)"
+echo "2) 📋 Run individual steps"
+echo "3) ℹ️  Show help/documentation"
+echo "4) ❌ Exit"
+echo ""
+
+read -p "Choose an option (1-4): " choice
+
+case $choice in
+    1)
+        echo ""
+        echo "🚀 Starting complete workflow..."
+        echo ""
+        
+        echo "================================="
+        echo "STEP 1: WORKSPACE STATUS & CLEANUP"
+        echo "================================="
+        ./dev/workspace-status
+        
+        echo ""
+        read -p "Press Enter to continue to Step 2..."
+        
+        echo ""
+        echo "================================="
+        echo "STEP 2: PR MANAGEMENT"
+        echo "================================="
+        ./dev/pr-management
+        
+        echo ""
+        read -p "Press Enter to continue to Step 3..."
+        
+        echo ""
+        echo "================================="
+        echo "STEP 3: SWITCH TO MAIN"
+        echo "================================="
+        ./dev/switch-to-main
+        
+        echo ""
+        read -p "Press Enter for final setup..."
+        
+        echo ""
+        echo "================================="
+        echo "STEP 4: RESTART PREPARATION"
+        echo "================================="
+        ./dev/copilot-restart
+        ;;
+        
+    2)
+        echo ""
+        echo "📋 Individual steps:"
+        echo "1) ./dev/workspace-status - Check and clean workspace"
+        echo "2) ./dev/pr-management    - Manage Copilot PRs"
+        echo "3) ./dev/switch-to-main   - Switch to main branch"
+        echo "4) ./dev/copilot-restart  - Prepare for restart"
+        echo ""
+        read -p "Which step would you like to run? (1-4): " step_choice
+        
+        case $step_choice in
+            1) ./dev/workspace-status ;;
+            2) ./dev/pr-management ;;
+            3) ./dev/switch-to-main ;;
+            4) ./dev/copilot-restart ;;
+            *) echo "❌ Invalid option" ;;
+        esac
+        ;;
+        
+    3)
+        echo ""
+        echo "📖 Copilot Cleanup Workflow Help"
+        echo "================================"
+        echo ""
+        echo "This workflow helps you clean up after GitHub Copilot agent work and"
+        echo "properly switch back to main branch for a fresh start."
+        echo ""
+        echo "🔄 The Problem:"
+        echo "When Copilot agents create draft PRs on temporary branches, your local"
+        echo "repo may still be carrying some of those changes, and you might not be"
+        echo "on the main branch."
+        echo ""
+        echo "✅ The Solution:"
+        echo "This 3-step workflow ensures you have a clean main branch to restart from:"
+        echo ""
+        echo "1️⃣  WORKSPACE CLEANUP:"
+        echo "   • Checks git status for uncommitted changes"
+        echo "   • Offers to commit any pending work"
+        echo "   • Shows available branches and PRs"
+        echo ""
+        echo "2️⃣  PR MANAGEMENT:"
+        echo "   • Helps you review draft PRs on GitHub"
+        echo "   • Provides options to merge or discard them"
+        echo "   • Cleans up local Copilot branches"
+        echo ""
+        echo "3️⃣  MAIN BRANCH SETUP:"
+        echo "   • Switches to main branch (creates if needed)"
+        echo "   • Pulls latest changes from origin"
+        echo "   • Ensures clean starting point"
+        echo ""
+        echo "4️⃣  RESTART PREPARATION:"
+        echo "   • Verifies environment is ready"
+        echo "   • Provides tips for next Copilot session"
+        echo "   • Confirms normal branch/PR workflow will work"
+        echo ""
+        echo "📁 Script Locations:"
+        echo "   ./dev/copilot-cleanup  - This master script"
+        echo "   ./dev/workspace-status - Step 1"
+        echo "   ./dev/pr-management    - Step 2"  
+        echo "   ./dev/switch-to-main   - Step 3"
+        echo "   ./dev/copilot-restart  - Step 4"
+        echo ""
+        ;;
+        
+    4)
+        echo "👋 Goodbye!"
+        exit 0
+        ;;
+        
+    *)
+        echo "❌ Invalid option"
+        exit 1
+        ;;
+esac
+
+echo ""
+echo "✅ Workflow complete! You're ready to restart Copilot on main branch."
