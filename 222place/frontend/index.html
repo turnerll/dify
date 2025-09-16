@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>222.place - Social Matching</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+        .match-card {
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+        }
+        .match-score {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .language-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .language-toggle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .event-card {
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: white;
+        }
+        .event-type {
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .event-type.dinner { background: #fd7e14; }
+        .event-type.gathering { background: #20c997; }
+        .event-type.outing { background: #6f42c1; }
+    </style>
+</head>
+<body>
+    <button class="language-toggle" onclick="toggleLanguage()">
+        <span id="langText">Español</span>
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <h1>222.place</h1>
+            <p id="subtitle">Connect with like-minded people for dinners, gatherings, and adventures</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('onboarding')">Onboarding</button>
+                <button class="tab" onclick="showTab('matches')">Matches</button>
+                <button class="tab" onclick="showTab('events')">Events</button>
+            </div>
+
+            <!-- Onboarding Tab -->
+            <div id="onboarding" class="tab-content active">
+                <h2>Complete Your Profile</h2>
+                <p>Answer a few questions to find your perfect matches</p>
+                
+                <div id="status"></div>
+
+                <form id="onboardingForm">
+                    <div class="form-group">
+                        <label for="displayName">Display Name</label>
+                        <input type="text" id="displayName" name="displayName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bio">Bio</label>
+                        <textarea id="bio" name="bio" rows="3" placeholder="Tell us about yourself..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city" name="city" placeholder="San Francisco, CA">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ageRange">Age Range</label>
+                        <select id="ageRange" name="ageRange">
+                            <option value="">Select age range</option>
+                            <option value="18-25">18-25</option>
+                            <option value="26-35">26-35</option>
+                            <option value="36-45">36-45</option>
+                            <option value="46-55">46-55</option>
+                            <option value="56-65">56-65</option>
+                            <option value="65+">65+</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Interests (Select all that apply)</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="cooking" name="interests" value="Cooking">
+                                <label for="cooking">Cooking</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="photography" name="interests" value="Photography">
+                                <label for="photography">Photography</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="reading" name="interests" value="Reading">
+                                <label for="reading">Reading</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="hiking" name="interests" value="Hiking">
+                                <label for="hiking">Hiking</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="music" name="interests" value="Music">
+                                <label for="music">Music</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="art" name="interests" value="Art">
+                                <label for="art">Art</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sports" name="interests" value="Sports">
+                                <label for="sports">Sports</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="travel" name="interests" value="Travel">
+                                <label for="travel">Travel</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="budget">Typical dinner budget</label>
+                        <select id="budget" name="budget">
+                            <option value="">Select budget range</option>
+                            <option value="Under $20">Under $20</option>
+                            <option value="$20-40">$20-40</option>
+                            <option value="$40-60">$40-60</option>
+                            <option value="$60-100">$60-100</option>
+                            <option value="Over $100">Over $100</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn">Complete Profile</button>
+                </form>
+            </div>
+
+            <!-- Matches Tab -->
+            <div id="matches" class="tab-content">
+                <h2>Your Matches</h2>
+                <p>People you might want to connect with</p>
+                
+                <div id="matchesList">
+                    <div class="match-card">
+                        <div class="match-score">85% Match</div>
+                        <h3>Maria</h3>
+                        <p>Love exploring new restaurants and cultural events. Always up for good conversation!</p>
+                        <p><strong>Location:</strong> San Francisco</p>
+                        <p><strong>Shared interests:</strong> Cooking, Art, Cultural events</p>
+                    </div>
+                    
+                    <div class="match-card">
+                        <div class="match-score">72% Match</div>
+                        <h3>Alex</h3>
+                        <p>Photographer who loves concerts and outdoor activities. Always looking for new friends!</p>
+                        <p><strong>Location:</strong> Berkeley</p>
+                        <p><strong>Shared interests:</strong> Photography, Music, Hiking</p>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="generateMatches()">Find New Matches</button>
+            </div>
+
+            <!-- Events Tab -->
+            <div id="events" class="tab-content">
+                <h2>Upcoming Events</h2>
+                <p>Join activities and meet new people</p>
+                
+                <div id="eventsList">
+                    <div class="event-card">
+                        <div class="event-type dinner">Dinner</div>
+                        <h3>Weekend Dinner at Italian Bistro</h3>
+                        <p>Join us for authentic Italian cuisine in North Beach. Great for food lovers!</p>
+                        <p><strong>When:</strong> This Saturday, 7:00 PM</p>
+                        <p><strong>Where:</strong> Mama's Italian Kitchen, North Beach</p>
+                        <p><strong>Budget:</strong> $25-45</p>
+                        <p><strong>Spots:</strong> 3 of 6 available</p>
+                    </div>
+                    
+                    <div class="event-card">
+                        <div class="event-type outing">Outing</div>
+                        <h3>Concert Night at the Fillmore</h3>
+                        <p>Live music and dancing! Perfect for music lovers.</p>
+                        <p><strong>When:</strong> Next Friday, 8:00 PM</p>
+                        <p><strong>Where:</strong> The Fillmore, San Francisco</p>
+                        <p><strong>Budget:</strong> $40-80</p>
+                        <p><strong>Spots:</strong> 5 of 8 available</p>
+                    </div>
+                    
+                    <div class="event-card">
+                        <div class="event-type gathering">Gathering</div>
+                        <h3>Picnic and Football Game Viewing</h3>
+                        <p>Casual gathering to watch the game with snacks and good company!</p>
+                        <p><strong>When:</strong> Sunday, 1:00 PM</p>
+                        <p><strong>Where:</strong> Golden Gate Park</p>
+                        <p><strong>Budget:</strong> $10-20</p>
+                        <p><strong>Spots:</strong> 8 of 12 available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLanguage = 'en';
+        const apiBase = 'http://localhost:5001';
+        
+        // Translations
+        const translations = {
+            en: {
+                subtitle: "Connect with like-minded people for dinners, gatherings, and adventures",
+                onboarding: "Onboarding",
+                matches: "Matches",
+                events: "Events",
+                langBtn: "Español"
+            },
+            es: {
+                subtitle: "Conecta con personas afines para cenas, reuniones y aventuras",
+                onboarding: "Registro",
+                matches: "Coincidencias",
+                events: "Eventos",
+                langBtn: "English"
+            }
+        };
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'en' ? 'es' : 'en';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            const t = translations[currentLanguage];
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('langText').textContent = t.langBtn;
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        async function generateMatches() {
+            try {
+                showStatus('Generating new matches...', 'success');
+                
+                const response = await fetch(`${apiBase}/v1/social/matching`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: '00000000-0000-0000-0000-000000000001'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showStatus(`Found ${data.matches_count} new matches!`, 'success');
+                } else {
+                    showStatus('Failed to generate matches', 'error');
+                }
+            } catch (error) {
+                console.error('Error generating matches:', error);
+                showStatus('Network error - please try again', 'error');
+            }
+        }
+
+        // Form submission
+        document.getElementById('onboardingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            try {
+                const formData = new FormData(e.target);
+                const interests = Array.from(document.querySelectorAll('input[name="interests"]:checked'))
+                                      .map(cb => cb.value);
+                
+                const responses = [
+                    { question_id: 1, response_value: formData.get('ageRange') || '26-35' },
+                    { question_id: 2, response_value: formData.get('city') || 'San Francisco' },
+                    { question_id: 5, response_value: interests.join(',') || 'Cooking,Reading' },
+                    { question_id: 20, response_value: formData.get('budget') || '$40-60' }
+                ];
+
+                const profile = {
+                    display_name: formData.get('displayName'),
+                    bio: formData.get('bio'),
+                    location_city: formData.get('city'),
+                    location_lat: 37.7749,
+                    location_lng: -122.4194,
+                    preferred_language: currentLanguage
+                };
+
+                const response = await fetch(`${apiBase}/v1/social/onboarding/responses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        responses,
+                        profile,
+                        user_id: '00000000-0000-0000-0000-000000000001'
+                    })
+                });
+
+                if (response.ok) {
+                    showStatus('Profile completed successfully! 🎉', 'success');
+                    // Switch to matches tab
+                    setTimeout(() => {
+                        showTab('matches');
+                        document.querySelectorAll('.tab')[1].classList.add('active');
+                    }, 2000);
+                } else {
+                    const error = await response.json();
+                    showStatus(`Error: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                showStatus('Network error - please try again', 'error');
+            }
+        });
+
+        // Test API connection on load
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch(`${apiBase}/health`);
+                if (response.ok) {
+                    console.log('API connection successful');
+                } else {
+                    showStatus('API connection failed - some features may not work', 'error');
+                }
+            } catch (error) {
+                showStatus('Cannot connect to API - running in demo mode', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
