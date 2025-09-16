@@ -1,0 +1,39 @@
+# Core web framework
+fastapi
+uvicorn
+python-multipart
+
+# Database
+sqlalchemy
+asyncpg
+psycopg2-binary
+
+# Async utilities
+aiofiles
+
+# Configuration and environment
+pydantic
+pydantic-settings
+python-dotenv
+
+# Authentication and security
+passlib
+bcrypt
+python-jose[cryptography]
+
+# HTTP client
+httpx
+requests
+
+# Redis client
+redis
+
+# Logging
+structlog
+
+# Monitoring
+prometheus-client
+
+# Development tools
+pytest
+black
